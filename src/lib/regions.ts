@@ -1,90 +1,269 @@
-// Administrative regions for BMKG weather data
-export interface AdministrativeRegion {
-  code: string
-  name: string
-  province: string
-}
-
-export const administrativeRegions: AdministrativeRegion[] = [
-  // Jakarta
-  { code: "31.71.01.1001", name: "Menteng", province: "DKI Jakarta" },
-  { code: "31.71.02.1001", name: "Gambir", province: "DKI Jakarta" },
-  { code: "31.72.01.1001", name: "Sawah Besar", province: "DKI Jakarta" },
-  { code: "31.74.01.1001", name: "Tambora", province: "DKI Jakarta" },
-  
-  // Jawa Barat
-  { code: "32.01.01.2001", name: "Bogor Selatan", province: "Jawa Barat" },
-  { code: "32.01.02.2001", name: "Bogor Utara", province: "Jawa Barat" },
-  { code: "32.73.01.1001", name: "Bandung Kulon", province: "Jawa Barat" },
-  { code: "32.73.02.1001", name: "Babakan Ciparay", province: "Jawa Barat" },
-  
-  // Jawa Tengah
-  { code: "33.01.01.2001", name: "Cilacap Selatan", province: "Jawa Tengah" },
-  { code: "33.71.01.1001", name: "Semarang Tengah", province: "Jawa Tengah" },
-  { code: "33.72.01.1001", name: "Surakarta", province: "Jawa Tengah" },
-  
-  // Jawa Timur
-  { code: "35.78.01.1001", name: "Surabaya Pusat", province: "Jawa Timur" },
-  { code: "35.78.02.1001", name: "Surabaya Utara", province: "Jawa Timur" },
-  { code: "35.79.01.1001", name: "Malang Kota", province: "Jawa Timur" },
-  
-  // Bali
-  { code: "51.71.01.1001", name: "Denpasar Selatan", province: "Bali" },
-  { code: "51.71.02.1001", name: "Denpasar Utara", province: "Bali" },
-  
-  // Sumatera Utara
-  { code: "12.71.01.1001", name: "Medan Kota", province: "Sumatera Utara" },
-  { code: "12.71.02.1001", name: "Medan Helvetia", province: "Sumatera Utara" },
-  
-  // Sumatera Barat
-  { code: "13.71.01.1001", name: "Padang Barat", province: "Sumatera Barat" },
-  { code: "13.71.02.1001", name: "Padang Timur", province: "Sumatera Barat" },
-  
-  // Riau
-  { code: "14.71.01.1001", name: "Pekanbaru Kota", province: "Riau" },
-  
-  // Sumatera Selatan
-  { code: "16.71.01.1001", name: "Palembang Ilir Barat I", province: "Sumatera Selatan" },
-  
-  // Lampung
-  { code: "18.71.01.1001", name: "Bandar Lampung", province: "Lampung" },
-  
-  // Kalimantan Barat
-  { code: "61.71.01.1001", name: "Pontianak Kota", province: "Kalimantan Barat" },
-  
-  // Kalimantan Selatan
-  { code: "63.71.01.1001", name: "Banjarmasin Tengah", province: "Kalimantan Selatan" },
-  
-  // Kalimantan Timur
-  { code: "64.71.01.1001", name: "Samarinda Kota", province: "Kalimantan Timur" },
-  
-  // Sulawesi Utara
-  { code: "71.71.01.1001", name: "Manado", province: "Sulawesi Utara" },
-  
-  // Sulawesi Selatan
-  { code: "73.71.01.1001", name: "Makassar", province: "Sulawesi Selatan" },
-  
-  // Papua
-  { code: "91.71.01.1001", name: "Jayapura", province: "Papua" },
-  
-  // Default - the one from Python script
-  { code: "36.71.01.1003", name: "Yogyakarta (Default)", province: "DI Yogyakarta" },
-]
-
 export const defaultRegionCode = '36.71.01.1003'
 
-export const getRegionByCode = (code: string): AdministrativeRegion | undefined => {
-  return administrativeRegions.find(region => region.code === code)
+export type RegionLevel = 'province' | 'regency' | 'district' | 'village'
+
+export interface RegionNode {
+  code: string
+  name: string
+  level: RegionLevel
 }
 
-export const getRegionsByProvince = () => {
-  const grouped = administrativeRegions.reduce((acc, region) => {
-    if (!acc[region.province]) {
-      acc[region.province] = []
+export interface Province extends RegionNode {
+  level: 'province'
+  regencies: Regency[]
+}
+
+export interface Regency extends RegionNode {
+  level: 'regency'
+  parentProvinceCode: string
+  districts: District[]
+}
+
+export interface District extends RegionNode {
+  level: 'district'
+  parentProvinceCode: string
+  parentRegencyCode: string
+  villages: Village[]
+}
+
+export interface Village extends RegionNode {
+  level: 'village'
+  parentProvinceCode: string
+  parentRegencyCode: string
+  parentDistrictCode: string
+}
+
+export interface RegionHierarchy {
+  provinces: Province[]
+  provinceMap: Map<string, Province>
+  regencyMap: Map<string, Regency>
+  districtMap: Map<string, District>
+  villageMap: Map<string, Village>
+}
+
+const parseLine = (line: string): { code: string; name: string } | null => {
+  const trimmed = line.trim()
+  if (!trimmed) {
+    return null
+  }
+
+  const firstCommaIndex = trimmed.indexOf(',')
+  if (firstCommaIndex === -1) {
+    return null
+  }
+
+  const code = trimmed.slice(0, firstCommaIndex).trim()
+  const name = trimmed.slice(firstCommaIndex + 1).trim()
+
+  if (!code || !name) {
+    return null
+  }
+
+  return { code, name }
+}
+
+const ensureProvince = (
+  hierarchy: RegionHierarchy,
+  code: string,
+  name: string
+): Province => {
+  let province = hierarchy.provinceMap.get(code)
+  if (!province) {
+    province = {
+      code,
+      name,
+      level: 'province',
+      regencies: [],
     }
-    acc[region.province].push(region)
-    return acc
-  }, {} as Record<string, AdministrativeRegion[]>)
-  
-  return grouped
+    hierarchy.provinceMap.set(code, province)
+    hierarchy.provinces.push(province)
+  } else if (!province.name) {
+    province.name = name
+  }
+  return province
+}
+
+const ensureRegency = (
+  hierarchy: RegionHierarchy,
+  code: string,
+  name: string,
+  provinceCode: string
+): Regency => {
+  let regency = hierarchy.regencyMap.get(code)
+  if (!regency) {
+    regency = {
+      code,
+      name,
+      level: 'regency',
+      parentProvinceCode: provinceCode,
+      districts: [],
+    }
+    hierarchy.regencyMap.set(code, regency)
+    const province = ensureProvince(hierarchy, provinceCode, '')
+    province.regencies.push(regency)
+  } else if (!regency.name) {
+    regency.name = name
+  }
+  return regency
+}
+
+const ensureDistrict = (
+  hierarchy: RegionHierarchy,
+  code: string,
+  name: string,
+  provinceCode: string,
+  regencyCode: string
+): District => {
+  let district = hierarchy.districtMap.get(code)
+  if (!district) {
+    district = {
+      code,
+      name,
+      level: 'district',
+      parentProvinceCode: provinceCode,
+      parentRegencyCode: regencyCode,
+      villages: [],
+    }
+    hierarchy.districtMap.set(code, district)
+    const regency = ensureRegency(hierarchy, regencyCode, '', provinceCode)
+    regency.districts.push(district)
+  } else if (!district.name) {
+    district.name = name
+  }
+  return district
+}
+
+const addVillage = (
+  hierarchy: RegionHierarchy,
+  code: string,
+  name: string,
+  provinceCode: string,
+  regencyCode: string,
+  districtCode: string
+) => {
+  if (hierarchy.villageMap.has(code)) {
+    return
+  }
+
+  const village: Village = {
+    code,
+    name,
+    level: 'village',
+    parentProvinceCode: provinceCode,
+    parentRegencyCode: regencyCode,
+    parentDistrictCode: districtCode,
+  }
+
+  hierarchy.villageMap.set(code, village)
+  const district = ensureDistrict(hierarchy, districtCode, '', provinceCode, regencyCode)
+  district.villages.push(village)
+}
+
+export const buildHierarchyFromCsv = (csv: string): RegionHierarchy => {
+  const hierarchy: RegionHierarchy = {
+    provinces: [],
+    provinceMap: new Map(),
+    regencyMap: new Map(),
+    districtMap: new Map(),
+    villageMap: new Map(),
+  }
+
+  const lines = csv.split(/\r?\n/)
+  for (const line of lines) {
+    const parsed = parseLine(line)
+    if (!parsed) {
+      continue
+    }
+
+    const { code, name } = parsed
+    const segments = code.split('.')
+
+    switch (segments.length) {
+      case 1: {
+        ensureProvince(hierarchy, code, name)
+        break
+      }
+      case 2: {
+        const provinceCode = segments[0]
+        ensureRegency(hierarchy, code, name, provinceCode)
+        break
+      }
+      case 3: {
+        const provinceCode = segments[0]
+        const regencyCode = `${segments[0]}.${segments[1]}`
+        ensureDistrict(hierarchy, code, name, provinceCode, regencyCode)
+        break
+      }
+      case 4: {
+        const provinceCode = segments[0]
+        const regencyCode = `${segments[0]}.${segments[1]}`
+        const districtCode = `${segments[0]}.${segments[1]}.${segments[2]}`
+        addVillage(hierarchy, code, name, provinceCode, regencyCode, districtCode)
+        break
+      }
+      default:
+        break
+    }
+  }
+
+  // Sort for stable display order
+  const byName = <T extends RegionNode>(array: T[]) => array.sort((a, b) => a.name.localeCompare(b.name))
+
+  byName(hierarchy.provinces)
+  for (const province of hierarchy.provinces) {
+    byName(province.regencies)
+    for (const regency of province.regencies) {
+      byName(regency.districts)
+      for (const district of regency.districts) {
+        byName(district.villages)
+      }
+    }
+  }
+
+  return hierarchy
+}
+
+export const getRegionPath = (
+  hierarchy: RegionHierarchy,
+  villageCode: string
+): {
+  province?: Province
+  regency?: Regency
+  district?: District
+  village?: Village
+} => {
+  const village = hierarchy.villageMap.get(villageCode)
+  if (!village) {
+    return {}
+  }
+
+  const district = hierarchy.districtMap.get(village.parentDistrictCode)
+  const regency = hierarchy.regencyMap.get(village.parentRegencyCode)
+  const province = hierarchy.provinceMap.get(village.parentProvinceCode)
+
+  return { village, district, regency, province }
+}
+
+export const getRegionDescription = (hierarchy: RegionHierarchy, villageCode: string): string => {
+  const { village, district, regency, province } = getRegionPath(hierarchy, villageCode)
+  if (!village) {
+    return `Kode ${villageCode}`
+  }
+
+  const parts = [village.name]
+  if (district) parts.push(district.name)
+  if (regency) parts.push(regency.name)
+  if (province) parts.push(province.name)
+
+  return parts.join(', ')
+}
+
+export const splitRegionCode = (code: string) => {
+  const segments = code.split('.')
+  return {
+    provinceCode: segments[0] || '',
+    regencyCode: segments.length >= 2 ? `${segments[0]}.${segments[1]}` : '',
+    districtCode: segments.length >= 3 ? `${segments[0]}.${segments[1]}.${segments[2]}` : '',
+    villageCode: segments.length >= 4 ? code : '',
+  }
 }
