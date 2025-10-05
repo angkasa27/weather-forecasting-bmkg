@@ -10,6 +10,6 @@ export const useWeatherData = (regionCode: string) => {
     enabled: Boolean(regionCode),
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 }

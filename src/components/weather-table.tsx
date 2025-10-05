@@ -7,12 +7,17 @@ import { Download, RefreshCw, Wind } from 'lucide-react'
 import Image from 'next/image'
 import { useWeatherData } from '@/hooks/use-weather-data'
 import { downloadCSV } from '@/lib/weather-api'
-import { defaultRegionCode, getRegionByCode, getRegionsByProvince } from '@/lib/regions'
+import { defaultRegionCode, getRegionByCode, getRegionsByProvince, type AdministrativeRegion } from '@/lib/regions'
+
+type ProvinceEntry = {
+  province: string
+  regions: AdministrativeRegion[]
+}
 
 const WeatherTable = () => {
-  const [regionCode, setRegionCode] = useState(defaultRegionCode)
+  const [regionCode, setRegionCode] = useState<string>(defaultRegionCode)
   const regionsByProvince = useMemo(() => getRegionsByProvince(), [])
-  const provinceEntries = useMemo(() => {
+  const provinceEntries = useMemo<ProvinceEntry[]>(() => {
     return Object.entries(regionsByProvince)
       .map(([province, regions]) => ({
         province,
