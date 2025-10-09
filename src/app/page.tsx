@@ -3,6 +3,9 @@
 import { useState, useCallback } from 'react'
 import { LocationSelector } from '@/components/weather/LocationSelector'
 import { CurrentWeather } from '@/components/weather/CurrentWeather'
+import { HourlyForecast } from '@/components/weather/HourlyForecast'
+import { DailyForecast } from '@/components/weather/DailyForecast'
+import { WeatherDetails } from '@/components/weather/WeatherDetails'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
@@ -77,32 +80,26 @@ export default function Home() {
             />
           )}
 
-          {/* Placeholder for future components */}
+          {/* Forecast Components */}
           {weatherData && weatherData.length > 0 && (
             <div className="grid gap-6">
-              {/* Hourly Forecast - Coming Soon */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Prakiraan Per Jam</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    Fitur prakiraan per jam akan segera hadir
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Hourly Forecast */}
+              <HourlyForecast 
+                data={weatherData}
+                isLoading={isLoading}
+              />
 
-              {/* Daily Forecast - Coming Soon */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Prakiraan Harian</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    Fitur prakiraan harian akan segera hadir
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Daily Forecast */}
+              <DailyForecast 
+                data={weatherData}
+                isLoading={isLoading}
+              />
+
+              {/* Weather Details Dashboard */}
+              <WeatherDetails 
+                data={weatherData}
+                isLoading={isLoading}
+              />
             </div>
           )}
         </main>
