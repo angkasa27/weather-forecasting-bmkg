@@ -39,10 +39,15 @@ export function Footer({ className }: FooterProps) {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold">Sumber Data</h3>
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ExternalLink className="h-3 w-3" />
+              <a
+                href="https://data.bmkg.go.id/prakiraan-cuaca/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground hover:underline"
+              >
+                <ExternalLink className="size-4" />
                 <span>API BMKG (api.bmkg.go.id)</span>
-              </div>
+              </a>
               <div className="text-xs text-muted-foreground">
                 Data cuaca diperbarui setiap 5 menit dari server BMKG. Informasi
                 yang disajikan adalah prakiraan resmi dari Badan Meteorologi,
@@ -55,39 +60,25 @@ export function Footer({ className }: FooterProps) {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold">Tautan</h3>
             <div className="space-y-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-auto p-0 justify-start text-sm text-muted-foreground hover:text-foreground"
-                asChild
+              <a
+                href="https://bmkg.go.id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground hover:underline"
               >
-                <a
-                  href="https://bmkg.go.id"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Website Resmi BMKG
-                </a>
-              </Button>
+                <ExternalLink className="size-4" />
+                Website Resmi BMKG
+              </a>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-auto p-0 justify-start text-sm text-muted-foreground hover:text-foreground"
-                asChild
+              <a
+                href="https://github.com/angkasa27/weather-forecasting-bmkg"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground hover:underline"
               >
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2"
-                >
-                  <Github className="h-3 w-3" />
-                  Source Code
-                </a>
-              </Button>
+                <Github className="size-4" />
+                Source Code
+              </a>
             </div>
           </div>
         </div>
@@ -102,7 +93,14 @@ export function Footer({ className }: FooterProps) {
             <div className="flex items-center justify-center sm:justify-start gap-1">
               <span className="font-medium text-foreground">Ferdy Indra</span>
               <span>&</span>
-              <span className="font-medium text-foreground">Dimas Angkasa</span>
+              <a
+                href="https://asaa.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-foreground"
+              >
+                Dimas Angkasa
+              </a>
             </div>
           </div>
 
