@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -11,6 +15,23 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Performance optimizations
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'recharts'],
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+  },
+  // Production optimizations
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

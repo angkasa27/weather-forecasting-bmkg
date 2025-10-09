@@ -11,7 +11,10 @@ import {
   Gauge,
   TrendingUp,
   Activity,
-  Download
+  Download,
+  Heart,
+  Layers,
+  Zap
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -123,7 +126,7 @@ const exportToCSV = (data: ProcessedWeatherData[], locationName: string) => {
 }
 
 export function WeatherDetails({ data, isLoading, className }: WeatherDetailsProps) {
-  const [selectedChart, setSelectedChart] = useState<'temperature' | 'humidity' | 'wind'>('temperature')
+  const [selectedChart, setSelectedChart] = useState<'temperature' | 'humidity' | 'wind' | 'comfort' | 'overview'>('temperature')
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -187,15 +190,43 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
       comfortLevel
     }
 
-    // Prepare chart data
-    const chartData = data.slice(0, 24).map((item, index) => ({
-      time: item.jam,
-      temperature: parseFloat(item.suhu) || 0,
-      humidity: parseFloat(item.kelembapan) || 0,
-      windSpeed: parseFloat(item.kecepatanAnginKmh) || 0,
-      windDirection: getWindDirection(parseFloat(item.arahAngin) || 0),
-      condition: item.cuaca
-    }))
+    // Prepare enhanced chart data with additional analytics
+    const chartData = data.slice(0, 24).map((item, index) => {
+      const temp = parseFloat(item.suhu) || 0
+      const humidity = parseFloat(item.kelembapan) || 0
+      const windSpeed = parseFloat(item.kecepatanAnginKmh) || 0
+      
+      // Calculate Heat Index (feels like temperature)
+      const heatIndex = temp < 27 ? temp : 
+        -8.78469475556 + 1.61139411 * temp + 2.33854883889 * humidity +
+        -0.14611605 * temp * humidity + -0.012308094 * temp * temp +
+        -0.0164248277778 * humidity * humidity + 0.002211732 * temp * temp * humidity +
+        0.00072546 * temp * humidity * humidity + -0.000003582 * temp * temp * humidity * humidity
+      
+      // Calculate Comfort Index (0-100 scale)
+      const comfortIndex = Math.max(0, Math.min(100, 
+        100 - Math.abs(temp - 24) * 3 - Math.abs(humidity - 50) * 0.5 - windSpeed * 2
+      ))
+      
+      // Calculate UV Risk Level (estimated based on temperature and time)
+      const hour = parseInt(item.jam.split(':')[0])
+      const uvRisk = temp > 25 && hour >= 10 && hour <= 16 ? 
+        Math.min(10, (temp - 20) / 3 + (hour >= 11 && hour <= 14 ? 2 : 0)) : 
+        Math.min(3, temp / 10)
+
+      return {
+        time: item.jam,
+        temperature: temp,
+        humidity: humidity,
+        windSpeed: windSpeed,
+        windDirection: getWindDirection(parseFloat(item.arahAngin) || 0),
+        condition: item.cuaca,
+        heatIndex: Math.round(heatIndex * 10) / 10,
+        comfortIndex: Math.round(comfortIndex),
+        uvRisk: Math.round(uvRisk * 10) / 10,
+        dewPoint: Math.round((temp - (100 - humidity) / 5) * 10) / 10
+      }
+    })
 
     return { metrics, chartData }
   }, [data])
@@ -381,6 +412,8 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
             { key: 'temperature', label: 'Suhu', icon: Thermometer },
             { key: 'humidity', label: 'Kelembapan', icon: Droplets },
             { key: 'wind', label: 'Angin', icon: Wind },
+            { key: 'comfort', label: 'Kenyamanan', icon: Heart },
+            { key: 'overview', label: 'Overview', icon: Layers },
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -523,6 +556,139 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
               </BarChart>
             </ResponsiveContainer>
           )}
+
+          {selectedChart === 'comfort' && (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="time" 
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  domain={[0, 100]}
+                />
+                <Tooltip 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-background border rounded-lg shadow-md p-3">
+                          <p className="font-medium">{`Jam ${label}`}</p>
+                          <p className="text-sm text-red-500">
+                            {`Terasa Seperti: ${payload[0]?.payload?.heatIndex}°C`}
+                          </p>
+                          <p className="text-sm text-green-600">
+                            {`Indeks Kenyamanan: ${payload[1]?.value}%`}
+                          </p>
+                          <p className="text-sm text-orange-600">
+                            {`Risiko UV: ${payload[0]?.payload?.uvRisk}/10`}
+                          </p>
+                        </div>
+                      )
+                    }
+                    return null
+                  }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="comfortIndex" 
+                  stroke="#10b981" 
+                  fill="#10b981" 
+                  fillOpacity={0.2}
+                  strokeWidth={2}
+                  name="Kenyamanan"
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="heatIndex" 
+                  stroke="#ef4444" 
+                  fill="#ef4444" 
+                  fillOpacity={0.1}
+                  strokeWidth={1}
+                  name="Heat Index"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+
+          {selectedChart === 'overview' && (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="time" 
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  yAxisId="temp"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  domain={['dataMin - 5', 'dataMax + 5']}
+                />
+                <YAxis 
+                  yAxisId="percent"
+                  orientation="right"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  domain={[0, 100]}
+                />
+                <Tooltip 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-background border rounded-lg shadow-md p-3">
+                          <p className="font-medium">{`Jam ${label}`}</p>
+                          {payload.map((entry, index) => (
+                            <p key={index} className="text-sm" style={{color: entry.color}}>
+                              {`${entry.name}: ${entry.value}${entry.dataKey === 'temperature' ? '°C' : 
+                                entry.dataKey === 'windSpeed' ? ' km/h' : '%'}`}
+                            </p>
+                          ))}
+                        </div>
+                      )
+                    }
+                    return null
+                  }}
+                />
+                <Line 
+                  yAxisId="temp"
+                  type="monotone" 
+                  dataKey="temperature" 
+                  stroke="#3b82f6" 
+                  strokeWidth={3}
+                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  name="Suhu"
+                />
+                <Line 
+                  yAxisId="percent"
+                  type="monotone" 
+                  dataKey="humidity" 
+                  stroke="#10b981" 
+                  strokeWidth={2}
+                  dot={{ fill: '#10b981', strokeWidth: 2, r: 3 }}
+                  name="Kelembapan"
+                />
+                <Line 
+                  yAxisId="percent"
+                  type="monotone" 
+                  dataKey="comfortIndex" 
+                  stroke="#f59e0b" 
+                  strokeWidth={2}
+                  dot={{ fill: '#f59e0b', strokeWidth: 2, r: 3 }}
+                  name="Kenyamanan"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         {/* Wind Direction Distribution */}
@@ -588,3 +754,5 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
     </Card>
   )
 }
+
+export default WeatherDetails

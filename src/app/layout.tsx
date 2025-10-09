@@ -6,12 +6,27 @@ export const metadata: Metadata = {
   title: "Prakiraan Cuaca Indonesia | Data BMKG Terkini",
   description: "Pantau kondisi cuaca terkini dan prakiraan cuaca akurat untuk seluruh wilayah Indonesia. Data resmi dari Badan Meteorologi, Klimatologi, dan Geofisika (BMKG).",
   keywords: ["cuaca", "prakiraan cuaca", "BMKG", "Indonesia", "suhu", "hujan", "angin", "kelembapan"],
-  authors: [{ name: "STMKG Weather App" }],
+  authors: [{ name: "Ferdy Indra & Dimas Angkasa" }],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Cuaca BMKG",
+  },
   openGraph: {
     title: "Prakiraan Cuaca Indonesia | Data BMKG Terkini",
     description: "Pantau kondisi cuaca terkini dan prakiraan cuaca akurat untuk seluruh wilayah Indonesia",
     type: "website",
   },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": "Cuaca BMKG",
+    "application-name": "Cuaca BMKG",
+    "msapplication-TileColor": "#2563eb",
+    "msapplication-config": "/browserconfig.xml"
+  }
 };
 
 export const viewport: Viewport = {

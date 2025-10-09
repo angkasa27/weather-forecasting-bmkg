@@ -1,0 +1,54 @@
+{
+  "name": "Prakiraan Cuaca Indonesia",
+  "short_name": "Cuaca BMKG",
+  "description": "Aplikasi prakiraan cuaca Indonesia dengan data resmi dari BMKG",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "id",
+  "categories": ["weather", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "192x192",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "512x512", 
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Cuaca Sekarang",
+      "description": "Lihat cuaca saat ini",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Pilih Lokasi",
+      "description": "Ubah lokasi cuaca",
+      "url": "/?location=select",
+      "icons": [
+        {
+          "src": "/icon-96.png", 
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "capture_links": "existing-client-navigate"
+}

@@ -1,19 +1,26 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, Suspense, lazy } from 'react'
 import { LocationSelector } from '@/components/weather/LocationSelector'
 import { CurrentWeather } from '@/components/weather/CurrentWeather'
 import { HourlyForecast } from '@/components/weather/HourlyForecast'
 import { DailyForecast } from '@/components/weather/DailyForecast'
-import { WeatherDetails } from '@/components/weather/WeatherDetails'
+
+// Lazy load heavy components
+const WeatherDetails = lazy(() => import('@/components/weather/WeatherDetails'))
+const WeatherAlerts = lazy(() => import('@/components/weather/WeatherAlerts'))
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
 import { WeatherError, NetworkStatus } from '@/components/layout/WeatherError'
+import { PWAInstallBanner, PWAOfflineBanner } from '@/components/pwa/PWABanner'
 import { useWeatherData } from '@/hooks/use-weather-data'
 import { defaultRegionCode } from '@/lib/regions'
 import { downloadCSV } from '@/lib/weather-api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { WeatherDetailsLoadingSkeleton, WeatherAlertsLoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { PerformanceMonitor, ServiceWorkerMonitor } from '@/components/performance/PerformanceMonitor'
+import { ResourcePreloader, ImageOptimizer } from '@/components/performance/ResourceOptimizer'
 
 export default function Home() {
   const [selectedLocationCode, setSelectedLocationCode] = useState(defaultRegionCode)
@@ -42,6 +49,16 @@ export default function Home() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background">
+        {/* Performance Monitoring & Optimization */}
+        <PerformanceMonitor />
+        <ServiceWorkerMonitor />
+        <ResourcePreloader />
+        <ImageOptimizer />
+        
+        {/* PWA Features */}
+        <PWAOfflineBanner />
+        <PWAInstallBanner />
+        
         <Header 
           selectedLocationCode={selectedLocationCode}
           onRefresh={handleRefresh}
@@ -64,6 +81,13 @@ export default function Home() {
               />
             </CardContent>
           </Card>
+
+          {/* Weather Alerts */}
+          {weatherData && weatherData.length > 0 && (
+            <Suspense fallback={<WeatherAlertsLoadingSkeleton />}>
+              <WeatherAlerts data={weatherData} />
+            </Suspense>
+          )}
 
           {/* Weather Display */}
           {error ? (
@@ -96,10 +120,12 @@ export default function Home() {
               />
 
               {/* Weather Details Dashboard */}
-              <WeatherDetails 
-                data={weatherData}
-                isLoading={isLoading}
-              />
+              <Suspense fallback={<WeatherDetailsLoadingSkeleton />}>
+                <WeatherDetails 
+                  data={weatherData}
+                  isLoading={isLoading}
+                />
+              </Suspense>
             </div>
           )}
         </main>
