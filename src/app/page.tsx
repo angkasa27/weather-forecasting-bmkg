@@ -18,18 +18,20 @@ export default function Home() {
                 Prakiraan Cuaca Indonesia
               </h1>
               <p className="text-blue-100 text-sm mt-1">
-                Data resmi dari BMKG • Stasiun Meteorologi, Klimatologi dan Geofisika
+                Data resmi dari BMKG • Stasiun Meteorologi, Klimatologi dan
+                Geofisika
               </p>
             </div>
           </div>
-          
+
           {/* Hero Text */}
           <div className="text-center sm:text-left">
             <p className="text-lg text-blue-100 mb-2">
               Pantau cuaca di wilayah Anda dengan data akurat dan terpercaya
             </p>
             <p className="text-sm text-blue-200">
-              Pilih lokasi hingga kelurahan/desa untuk informasi cuaca yang lebih detail
+              Pilih lokasi hingga kelurahan/desa untuk informasi cuaca yang
+              lebih detail
             </p>
           </div>
         </div>
@@ -45,10 +47,21 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="text-center text-sm text-gray-600">
             <p className="mb-2">
-              <strong>Prakiraan Cuaca Indonesia</strong> - Aplikasi prakiraan cuaca berbasis data BMKG
+              <strong>Prakiraan Cuaca Indonesia</strong> - Aplikasi prakiraan
+              cuaca berbasis data BMKG
+            </p>
+            <p className="text-xs mb-2">
+              Data cuaca diperbarui secara berkala dari server resmi Badan
+              Meteorologi, Klimatologi, dan Geofisika (BMKG)
             </p>
             <p className="text-xs">
-              Data cuaca diperbarui secara berkala dari server resmi Badan Meteorologi, Klimatologi, dan Geofisika (BMKG)
+              Created by Ferdy Indra &{" "}
+              <a
+                href="https://asaa.dev"
+                className="text-blue-600 hover:underline"
+              >
+                Dimas Angkasa
+              </a>
             </p>
           </div>
         </div>
@@ -56,5 +69,3 @@ export default function Home() {
     </div>
   );
 }
-
-

@@ -289,7 +289,7 @@ const WeatherTable = () => {
             </div>
           </div>
 
-          <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 shadow-sm">
+          <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 shadow-sm w-full">
             <h3 className="text-sm font-bold text-blue-900 mb-1">
               📍 Pilih Lokasi
             </h3>
@@ -319,7 +319,7 @@ const WeatherTable = () => {
                     <SelectTrigger
                       id="province-selector"
                       aria-label="Provinsi"
-                      className="h-11 rounded-lg border-gray-300 focus:border-blue-500"
+                      className="w-full"
                     >
                       <SelectValue
                         placeholder={
@@ -358,7 +358,7 @@ const WeatherTable = () => {
                     <SelectTrigger
                       id="regency-selector"
                       aria-label="Kabupaten atau kota"
-                      className="h-11 rounded-lg border-gray-300 focus:border-blue-500"
+                      className="w-full"
                     >
                       <SelectValue
                         placeholder={
@@ -397,7 +397,7 @@ const WeatherTable = () => {
                     <SelectTrigger
                       id="district-selector"
                       aria-label="Kecamatan"
-                      className="h-11 rounded-lg border-gray-300 focus:border-blue-500"
+                      className="w-full"
                     >
                       <SelectValue
                         placeholder={
@@ -436,7 +436,7 @@ const WeatherTable = () => {
                     <SelectTrigger
                       id="village-selector"
                       aria-label="Kelurahan atau desa"
-                      className="h-11 rounded-lg border-gray-300 focus:border-blue-500"
+                      className="w-full"
                     >
                       <SelectValue
                         placeholder={
