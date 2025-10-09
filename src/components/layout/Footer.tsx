@@ -37,7 +37,7 @@ export function Footer({ className }: FooterProps) {
 
           {/* Data Source */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold">Sumber Data</h3>
+            <h3 className="text-sm font-semibold">Data Source</h3>
             <div className="space-y-2">
               <a
                 href="https://data.bmkg.go.id/prakiraan-cuaca/"
@@ -58,7 +58,7 @@ export function Footer({ className }: FooterProps) {
 
           {/* Links */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold">Tautan</h3>
+            <h3 className="text-sm font-semibold">Links</h3>
             <div className="space-y-2">
               <a
                 href="https://bmkg.go.id"
@@ -107,7 +107,7 @@ export function Footer({ className }: FooterProps) {
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <span>Tidak untuk keperluan komersial</span>
             <span className="hidden sm:inline">•</span>
-            <span>Data dari BMKG</span>
+            <span>Data source: BMKG</span>
           </div>
         </div>
 
