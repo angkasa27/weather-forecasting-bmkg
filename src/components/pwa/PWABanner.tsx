@@ -1,44 +1,46 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Download, X, Smartphone } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { usePWA } from '@/hooks/use-pwa'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Download, X, Smartphone } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { usePWA } from "@/hooks/use-pwa";
 
 interface PWAInstallBannerProps {
-  className?: string
+  className?: string;
 }
 
 export function PWAInstallBanner({ className }: PWAInstallBannerProps) {
-  const [dismissed, setDismissed] = useState(false)
-  const { isInstallable, install, showInstallBanner } = usePWA()
+  const [dismissed, setDismissed] = useState(false);
+  const { isInstallable, install, showInstallBanner } = usePWA();
 
   if (!isInstallable || !showInstallBanner || dismissed) {
-    return null
+    return null;
   }
 
   const handleInstall = async () => {
     try {
-      await install()
+      await install();
     } catch (error) {
-      console.error('Failed to install PWA:', error)
+      console.error("Failed to install PWA:", error);
     }
-  }
+  };
 
   const handleDismiss = () => {
-    setDismissed(true)
+    setDismissed(true);
     // Remember dismissal for this session
-    sessionStorage.setItem('pwa-banner-dismissed', 'true')
-  }
+    sessionStorage.setItem("pwa-banner-dismissed", "true");
+  };
 
   return (
-    <Card className={cn(
-      "fixed bottom-4 left-4 right-4 z-50 border-primary/20 bg-primary/5 backdrop-blur-sm",
-      "sm:left-auto sm:right-4 sm:w-96",
-      className
-    )}>
+    <Card
+      className={cn(
+        "fixed bottom-4 left-4 right-4 z-50 border-primary/20 bg-primary/5 backdrop-blur-sm",
+        "sm:left-auto sm:right-4 sm:w-96",
+        className
+      )}
+    >
       <div className="p-4">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
@@ -46,25 +48,22 @@ export function PWAInstallBanner({ className }: PWAInstallBannerProps) {
               <Smartphone className="w-6 h-6 text-primary-foreground" />
             </div>
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm text-foreground">
               Install Aplikasi Cuaca
             </h3>
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Install aplikasi ini ke perangkat Anda untuk akses cepat dan pengalaman yang lebih baik
+              Install aplikasi ini ke perangkat Anda untuk akses cepat dan
+              pengalaman yang lebih baik
             </p>
-            
+
             <div className="flex items-center gap-2 mt-3">
-              <Button
-                size="sm"
-                onClick={handleInstall}
-                className="text-xs h-8"
-              >
+              <Button size="sm" onClick={handleInstall} className="text-xs h-8">
                 <Download className="w-3 h-3 mr-1" />
                 Install
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -75,7 +74,7 @@ export function PWAInstallBanner({ className }: PWAInstallBannerProps) {
               </Button>
             </div>
           </div>
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -87,15 +86,15 @@ export function PWAInstallBanner({ className }: PWAInstallBannerProps) {
         </div>
       </div>
     </Card>
-  )
+  );
 }
 
 export function PWAOfflineBanner() {
-  const { isOnline } = usePWA()
-  const [dismissed, setDismissed] = useState(false)
+  const { isOnline } = usePWA();
+  const [dismissed, setDismissed] = useState(false);
 
   if (isOnline || dismissed) {
-    return null
+    return null;
   }
 
   return (
@@ -115,5 +114,5 @@ export function PWAOfflineBanner() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

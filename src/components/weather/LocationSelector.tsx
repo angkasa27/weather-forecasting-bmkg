@@ -1,104 +1,119 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useMemo } from 'react'
-import { Check, ChevronsUpDown, Search, MapPin, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Badge } from '@/components/ui/badge'
-import { useRegionHierarchy } from '@/hooks/use-regions-data'
-import { getRegionDescription, getRegionPath, defaultRegionCode } from '@/lib/regions'
-import type { Province, Regency, District, Village } from '@/lib/regions'
+import { useState, useEffect, useMemo } from "react";
+import { Check, ChevronsUpDown, Search, MapPin, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { useRegionHierarchy } from "@/hooks/use-regions-data";
+import {
+  getRegionDescription,
+  getRegionPath,
+  defaultRegionCode,
+} from "@/lib/regions";
+import type { Province, Regency, District, Village } from "@/lib/regions";
 
 interface LocationSelectorProps {
-  selectedLocationCode?: string
-  onLocationChange: (locationCode: string) => void
-  className?: string
+  selectedLocationCode?: string;
+  onLocationChange: (locationCode: string) => void;
+  className?: string;
 }
 
 interface SelectionState {
-  province?: Province
-  regency?: Regency
-  district?: District
-  village?: Village
+  province?: Province;
+  regency?: Regency;
+  district?: District;
+  village?: Village;
 }
 
-export function LocationSelector({ 
-  selectedLocationCode = defaultRegionCode, 
+export function LocationSelector({
+  selectedLocationCode = defaultRegionCode,
   onLocationChange,
-  className 
+  className,
 }: LocationSelectorProps) {
-  const { data: regionHierarchy, isLoading } = useRegionHierarchy()
-  const [open, setOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selection, setSelection] = useState<SelectionState>({})
-  
+  const { data: regionHierarchy, isLoading } = useRegionHierarchy();
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selection, setSelection] = useState<SelectionState>({});
+
   // Initialize selection from selectedLocationCode
   useEffect(() => {
     if (regionHierarchy && selectedLocationCode) {
-      const path = getRegionPath(regionHierarchy, selectedLocationCode)
-      setSelection(path)
+      const path = getRegionPath(regionHierarchy, selectedLocationCode);
+      setSelection(path);
     }
-  }, [regionHierarchy, selectedLocationCode])
+  }, [regionHierarchy, selectedLocationCode]);
 
   // Filter regions based on search query
   const filteredRegions = useMemo(() => {
-    if (!regionHierarchy || !searchQuery.trim()) return null
-    
-    const query = searchQuery.toLowerCase()
-    const matchedVillages: Village[] = []
-    
+    if (!regionHierarchy || !searchQuery.trim()) return null;
+
+    const query = searchQuery.toLowerCase();
+    const matchedVillages: Village[] = [];
+
     // Search through all villages
     regionHierarchy.villageMap.forEach((village) => {
       if (village.name.toLowerCase().includes(query)) {
-        matchedVillages.push(village)
+        matchedVillages.push(village);
       }
-    })
-    
-    return matchedVillages.slice(0, 50) // Limit results for performance
-  }, [regionHierarchy, searchQuery])
+    });
+
+    return matchedVillages.slice(0, 50); // Limit results for performance
+  }, [regionHierarchy, searchQuery]);
 
   const handleProvinceSelect = (province: Province) => {
-    setSelection({ province })
-    setSearchQuery('')
-  }
+    setSelection({ province });
+    setSearchQuery("");
+  };
 
   const handleRegencySelect = (regency: Regency) => {
-    setSelection(prev => ({ ...prev, regency }))
-  }
+    setSelection((prev) => ({ ...prev, regency }));
+  };
 
   const handleDistrictSelect = (district: District) => {
-    setSelection(prev => ({ ...prev, district }))
-  }
+    setSelection((prev) => ({ ...prev, district }));
+  };
 
   const handleVillageSelect = (village: Village) => {
     if (regionHierarchy) {
-      const path = getRegionPath(regionHierarchy, village.code)
-      setSelection(path)
-      onLocationChange(village.code)
-      setOpen(false)
-      setSearchQuery('')
+      const path = getRegionPath(regionHierarchy, village.code);
+      setSelection(path);
+      onLocationChange(village.code);
+      setOpen(false);
+      setSearchQuery("");
     }
-  }
+  };
 
   const handleSearchResultSelect = (village: Village) => {
-    handleVillageSelect(village)
-  }
+    handleVillageSelect(village);
+  };
 
   const clearSelection = () => {
-    setSelection({})
-    setSearchQuery('')
-  }
+    setSelection({});
+    setSearchQuery("");
+  };
 
   const getDisplayText = () => {
     if (!regionHierarchy || !selectedLocationCode) {
-      return 'Pilih lokasi...'
+      return "Pilih lokasi...";
     }
-    return getRegionDescription(regionHierarchy, selectedLocationCode)
-  }
+    return getRegionDescription(regionHierarchy, selectedLocationCode);
+  };
 
-  const canSelectVillage = selection.province && selection.regency && selection.district
+  const canSelectVillage =
+    selection.province && selection.regency && selection.district;
 
   if (isLoading) {
     return (
@@ -112,7 +127,7 @@ export function LocationSelector({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -127,9 +142,7 @@ export function LocationSelector({
           >
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <span className="truncate text-sm">
-                {getDisplayText()}
-              </span>
+              <span className="truncate text-sm">{getDisplayText()}</span>
             </div>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -161,7 +174,9 @@ export function LocationSelector({
               {searchQuery && filteredRegions && (
                 <CommandGroup heading="Hasil Pencarian">
                   {filteredRegions.length === 0 ? (
-                    <CommandEmpty>Tidak ditemukan lokasi yang cocok</CommandEmpty>
+                    <CommandEmpty>
+                      Tidak ditemukan lokasi yang cocok
+                    </CommandEmpty>
                   ) : (
                     filteredRegions.map((village) => (
                       <CommandItem
@@ -173,13 +188,21 @@ export function LocationSelector({
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            selectedLocationCode === village.code ? "opacity-100" : "opacity-0"
+                            selectedLocationCode === village.code
+                              ? "opacity-100"
+                              : "opacity-0"
                           )}
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{village.name}</div>
+                          <div className="font-medium truncate">
+                            {village.name}
+                          </div>
                           <div className="text-xs text-muted-foreground truncate">
-                            {regionHierarchy && getRegionDescription(regionHierarchy, village.code)}
+                            {regionHierarchy &&
+                              getRegionDescription(
+                                regionHierarchy,
+                                village.code
+                              )}
                           </div>
                         </div>
                       </CommandItem>
@@ -288,7 +311,9 @@ export function LocationSelector({
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedLocationCode === village.code ? "opacity-100" : "opacity-0"
+                              selectedLocationCode === village.code
+                                ? "opacity-100"
+                                : "opacity-0"
                             )}
                           />
                           <div className="flex-1">
@@ -309,5 +334,5 @@ export function LocationSelector({
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }

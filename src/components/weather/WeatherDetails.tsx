@@ -1,180 +1,210 @@
-'use client'
+"use client";
 
-import { useMemo, useState, useEffect } from 'react'
-import { 
-  BarChart3, 
-  Thermometer, 
-  Droplets, 
-  Wind, 
-  Compass, 
-  Eye, 
+import { useMemo, useState, useEffect } from "react";
+import {
+  BarChart3,
+  Thermometer,
+  Droplets,
+  Wind,
+  Compass,
   Gauge,
   TrendingUp,
-  Activity,
   Download,
   Heart,
   Layers,
-  Zap
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
-import type { ProcessedWeatherData, WeatherItem } from '@/lib/weather-api'
-import { format } from 'date-fns'
-import { id } from 'date-fns/locale'
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  BarChart, 
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import type { ProcessedWeatherData, WeatherItem } from "@/lib/weather-api";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
   Bar,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
-} from 'recharts'
+  Cell,
+} from "recharts";
 
 interface WeatherDetailsProps {
-  data?: ProcessedWeatherData[]
-  isLoading?: boolean
-  className?: string
+  data?: ProcessedWeatherData[];
+  isLoading?: boolean;
+  className?: string;
 }
 
 interface WeatherMetrics {
-  avgTemp: number
-  minTemp: number
-  maxTemp: number
-  avgHumidity: number
-  minHumidity: number
-  maxHumidity: number
-  avgWindSpeed: number
-  maxWindSpeed: number
-  windDirectionFreq: Record<string, number>
-  tempTrend: 'rising' | 'falling' | 'stable'
-  comfortLevel: 'comfortable' | 'humid' | 'dry' | 'hot' | 'cold'
+  avgTemp: number;
+  minTemp: number;
+  maxTemp: number;
+  avgHumidity: number;
+  minHumidity: number;
+  maxHumidity: number;
+  avgWindSpeed: number;
+  maxWindSpeed: number;
+  windDirectionFreq: Record<string, number>;
+  tempTrend: "rising" | "falling" | "stable";
+  comfortLevel: "comfortable" | "humid" | "dry" | "hot" | "cold";
 }
 
 // Wind direction helper
 const getWindDirection = (degrees: number): string => {
-  const directions = ['U', 'TL', 'T', 'TG', 'S', 'BD', 'B', 'BL']
-  const index = Math.round(degrees / 45) % 8
-  return directions[index]
-}
+  const directions = ["U", "TL", "T", "TG", "S", "BD", "B", "BL"];
+  const index = Math.round(degrees / 45) % 8;
+  return directions[index];
+};
 
 // Comfort level calculation
-const getComfortLevel = (temp: number, humidity: number): WeatherMetrics['comfortLevel'] => {
-  if (temp > 35) return 'hot'
-  if (temp < 15) return 'cold'
-  if (humidity > 80) return 'humid'
-  if (humidity < 30) return 'dry'
-  return 'comfortable'
-}
+const getComfortLevel = (
+  temp: number,
+  humidity: number
+): WeatherMetrics["comfortLevel"] => {
+  if (temp > 35) return "hot";
+  if (temp < 15) return "cold";
+  if (humidity > 80) return "humid";
+  if (humidity < 30) return "dry";
+  return "comfortable";
+};
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF7C7C']
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#8884D8",
+  "#82CA9D",
+  "#FFC658",
+  "#FF7C7C",
+];
 
 // CSV Export functionality
 const exportToCSV = (data: ProcessedWeatherData[], locationName: string) => {
-  if (!data.length) return
-  
-  const headers = [
-    'Tanggal',
-    'Waktu',
-    'Cuaca',
-    'Suhu (°C)',
-    'Kelembapan (%)',
-    'Kecepatan Angin (km/h)',
-    'Kecepatan Angin (knots)',
-    'Arah Angin',
-    'Icon File'
-  ]
-  
-  const csvContent = [
-    headers.join(','),
-    ...data.map(item => [
-      item.tanggal,
-      item.jam,
-      `"${item.cuaca}"`,
-      item.suhu,
-      item.kelembapan,
-      item.kecepatanAnginKmh,
-      item.kecepatanAnginKnots,
-      `"${item.arahAngin}"`,
-      item.fileIkon
-    ].join(','))
-  ].join('\n')
-  
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  
-  if (link.download !== undefined) {
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', `weather_${locationName}_${format(new Date(), 'yyyy-MM-dd_HH-mm')}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-}
+  if (!data.length) return;
 
-export function WeatherDetails({ data, isLoading, className }: WeatherDetailsProps) {
-  const [selectedChart, setSelectedChart] = useState<'temperature' | 'humidity' | 'wind' | 'comfort' | 'overview'>('temperature')
-  const [isMounted, setIsMounted] = useState(false)
+  const headers = [
+    "Tanggal",
+    "Waktu",
+    "Cuaca",
+    "Suhu (°C)",
+    "Kelembapan (%)",
+    "Kecepatan Angin (km/h)",
+    "Kecepatan Angin (knots)",
+    "Arah Angin",
+    "Icon File",
+  ];
+
+  const csvContent = [
+    headers.join(","),
+    ...data.map((item) =>
+      [
+        item.tanggal,
+        item.jam,
+        `"${item.cuaca}"`,
+        item.suhu,
+        item.kelembapan,
+        item.kecepatanAnginKmh,
+        item.kecepatanAnginKnots,
+        `"${item.arahAngin}"`,
+        item.fileIkon,
+      ].join(",")
+    ),
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `weather_${locationName}_${format(new Date(), "yyyy-MM-dd_HH-mm")}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+};
+
+export function WeatherDetails({
+  data,
+  isLoading,
+  className,
+}: WeatherDetailsProps) {
+  const [selectedChart, setSelectedChart] = useState<
+    "temperature" | "humidity" | "wind" | "comfort" | "overview"
+  >("temperature");
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    setIsMounted(true);
+  }, []);
 
   const { metrics, chartData } = useMemo(() => {
     if (!data || data.length === 0) {
-      return { 
-        metrics: null, 
-        chartData: [] 
-      }
+      return {
+        metrics: null,
+        chartData: [],
+      };
     }
 
     // Calculate metrics
-    const temperatures = data.map(item => parseFloat(item.suhu)).filter(temp => !isNaN(temp))
-    const humidities = data.map(item => parseFloat(item.kelembapan)).filter(hum => !isNaN(hum))
-    const windSpeeds = data.map(item => parseFloat(item.kecepatanAnginKmh)).filter(wind => !isNaN(wind))
-    const windDirections = data.map(item => parseFloat(item.arahAngin)).filter(dir => !isNaN(dir))
+    const temperatures = data
+      .map((item) => parseFloat(item.suhu))
+      .filter((temp) => !isNaN(temp));
+    const humidities = data
+      .map((item) => parseFloat(item.kelembapan))
+      .filter((hum) => !isNaN(hum));
+    const windSpeeds = data
+      .map((item) => parseFloat(item.kecepatanAnginKmh))
+      .filter((wind) => !isNaN(wind));
+    const windDirections = data
+      .map((item) => parseFloat(item.arahAngin))
+      .filter((dir) => !isNaN(dir));
 
-    const avgTemp = temperatures.reduce((a, b) => a + b, 0) / temperatures.length
-    const minTemp = Math.min(...temperatures)
-    const maxTemp = Math.max(...temperatures)
-    
-    const avgHumidity = humidities.reduce((a, b) => a + b, 0) / humidities.length
-    const minHumidity = Math.min(...humidities)
-    const maxHumidity = Math.max(...humidities)
-    
-    const avgWindSpeed = windSpeeds.reduce((a, b) => a + b, 0) / windSpeeds.length
-    const maxWindSpeed = Math.max(...windSpeeds)
+    const avgTemp =
+      temperatures.reduce((a, b) => a + b, 0) / temperatures.length;
+    const minTemp = Math.min(...temperatures);
+    const maxTemp = Math.max(...temperatures);
+
+    const avgHumidity =
+      humidities.reduce((a, b) => a + b, 0) / humidities.length;
+    const minHumidity = Math.min(...humidities);
+    const maxHumidity = Math.max(...humidities);
+
+    const avgWindSpeed =
+      windSpeeds.reduce((a, b) => a + b, 0) / windSpeeds.length;
+    const maxWindSpeed = Math.max(...windSpeeds);
 
     // Wind direction frequency
     const windDirectionFreq = windDirections.reduce((acc, dir) => {
-      const direction = getWindDirection(dir)
-      acc[direction] = (acc[direction] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
+      const direction = getWindDirection(dir);
+      acc[direction] = (acc[direction] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
     // Temperature trend (simple calculation based on first vs last)
-    const firstTemp = temperatures[0] || 0
-    const lastTemp = temperatures[temperatures.length - 1] || 0
-    const tempDiff = lastTemp - firstTemp
-    const tempTrend: WeatherMetrics['tempTrend'] = 
-      Math.abs(tempDiff) < 1 ? 'stable' : 
-      tempDiff > 0 ? 'rising' : 'falling'
+    const firstTemp = temperatures[0] || 0;
+    const lastTemp = temperatures[temperatures.length - 1] || 0;
+    const tempDiff = lastTemp - firstTemp;
+    const tempTrend: WeatherMetrics["tempTrend"] =
+      Math.abs(tempDiff) < 1 ? "stable" : tempDiff > 0 ? "rising" : "falling";
 
     // Comfort level based on average conditions
-    const comfortLevel = getComfortLevel(avgTemp, avgHumidity)
+    const comfortLevel = getComfortLevel(avgTemp, avgHumidity);
 
     const metrics: WeatherMetrics = {
       avgTemp,
@@ -187,32 +217,47 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
       maxWindSpeed,
       windDirectionFreq,
       tempTrend,
-      comfortLevel
-    }
+      comfortLevel,
+    };
 
     // Prepare enhanced chart data with additional analytics
     const chartData = data.slice(0, 24).map((item, index) => {
-      const temp = parseFloat(item.suhu) || 0
-      const humidity = parseFloat(item.kelembapan) || 0
-      const windSpeed = parseFloat(item.kecepatanAnginKmh) || 0
-      
+      const temp = parseFloat(item.suhu) || 0;
+      const humidity = parseFloat(item.kelembapan) || 0;
+      const windSpeed = parseFloat(item.kecepatanAnginKmh) || 0;
+
       // Calculate Heat Index (feels like temperature)
-      const heatIndex = temp < 27 ? temp : 
-        -8.78469475556 + 1.61139411 * temp + 2.33854883889 * humidity +
-        -0.14611605 * temp * humidity + -0.012308094 * temp * temp +
-        -0.0164248277778 * humidity * humidity + 0.002211732 * temp * temp * humidity +
-        0.00072546 * temp * humidity * humidity + -0.000003582 * temp * temp * humidity * humidity
-      
+      const heatIndex =
+        temp < 27
+          ? temp
+          : -8.78469475556 +
+            1.61139411 * temp +
+            2.33854883889 * humidity +
+            -0.14611605 * temp * humidity +
+            -0.012308094 * temp * temp +
+            -0.0164248277778 * humidity * humidity +
+            0.002211732 * temp * temp * humidity +
+            0.00072546 * temp * humidity * humidity +
+            -0.000003582 * temp * temp * humidity * humidity;
+
       // Calculate Comfort Index (0-100 scale)
-      const comfortIndex = Math.max(0, Math.min(100, 
-        100 - Math.abs(temp - 24) * 3 - Math.abs(humidity - 50) * 0.5 - windSpeed * 2
-      ))
-      
+      const comfortIndex = Math.max(
+        0,
+        Math.min(
+          100,
+          100 -
+            Math.abs(temp - 24) * 3 -
+            Math.abs(humidity - 50) * 0.5 -
+            windSpeed * 2
+        )
+      );
+
       // Calculate UV Risk Level (estimated based on temperature and time)
-      const hour = parseInt(item.jam.split(':')[0])
-      const uvRisk = temp > 25 && hour >= 10 && hour <= 16 ? 
-        Math.min(10, (temp - 20) / 3 + (hour >= 11 && hour <= 14 ? 2 : 0)) : 
-        Math.min(3, temp / 10)
+      const hour = parseInt(item.jam.split(":")[0]);
+      const uvRisk =
+        temp > 25 && hour >= 10 && hour <= 16
+          ? Math.min(10, (temp - 20) / 3 + (hour >= 11 && hour <= 14 ? 2 : 0))
+          : Math.min(3, temp / 10);
 
       return {
         time: item.jam,
@@ -224,12 +269,12 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
         heatIndex: Math.round(heatIndex * 10) / 10,
         comfortIndex: Math.round(comfortIndex),
         uvRisk: Math.round(uvRisk * 10) / 10,
-        dewPoint: Math.round((temp - (100 - humidity) / 5) * 10) / 10
-      }
-    })
+        dewPoint: Math.round((temp - (100 - humidity) / 5) * 10) / 10,
+      };
+    });
 
-    return { metrics, chartData }
-  }, [data])
+    return { metrics, chartData };
+  }, [data]);
 
   // Prevent hydration mismatch by not rendering until mounted
   if (!isMounted) {
@@ -254,7 +299,7 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
           <Skeleton className="h-64 w-full" />
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (isLoading) {
@@ -281,7 +326,7 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
           <Skeleton className="h-64 w-full" />
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (!metrics || !data || data.length === 0) {
@@ -299,15 +344,17 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   // Wind direction chart data
-  const windDirectionData = Object.entries(metrics.windDirectionFreq).map(([direction, count]) => ({
-    direction,
-    count,
-    percentage: (count / data.length * 100).toFixed(1)
-  }))
+  const windDirectionData = Object.entries(metrics.windDirectionFreq).map(
+    ([direction, count]) => ({
+      direction,
+      count,
+      percentage: ((count / data.length) * 100).toFixed(1),
+    })
+  );
 
   return (
     <Card className={cn("w-full", className)}>
@@ -320,7 +367,7 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
           <Button
             variant="outline"
             size="sm"
-            onClick={() => exportToCSV(data, 'location')}
+            onClick={() => exportToCSV(data, "location")}
             className="flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
@@ -344,12 +391,27 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
             <div className="text-xs text-muted-foreground">
               {metrics.minTemp.toFixed(0)}° - {metrics.maxTemp.toFixed(0)}°
             </div>
-            <Badge variant={metrics.tempTrend === 'rising' ? 'default' : metrics.tempTrend === 'falling' ? 'secondary' : 'outline'} className="text-xs">
-              <TrendingUp className={cn("h-3 w-3 mr-1", 
-                metrics.tempTrend === 'falling' && "rotate-180"
-              )} />
-              {metrics.tempTrend === 'rising' ? 'Naik' : 
-               metrics.tempTrend === 'falling' ? 'Turun' : 'Stabil'}
+            <Badge
+              variant={
+                metrics.tempTrend === "rising"
+                  ? "default"
+                  : metrics.tempTrend === "falling"
+                  ? "secondary"
+                  : "outline"
+              }
+              className="text-xs"
+            >
+              <TrendingUp
+                className={cn(
+                  "h-3 w-3 mr-1",
+                  metrics.tempTrend === "falling" && "rotate-180"
+                )}
+              />
+              {metrics.tempTrend === "rising"
+                ? "Naik"
+                : metrics.tempTrend === "falling"
+                ? "Turun"
+                : "Stabil"}
             </Badge>
           </div>
 
@@ -363,7 +425,8 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
               {metrics.avgHumidity.toFixed(0)}%
             </div>
             <div className="text-xs text-muted-foreground">
-              {metrics.minHumidity.toFixed(0)}% - {metrics.maxHumidity.toFixed(0)}%
+              {metrics.minHumidity.toFixed(0)}% -{" "}
+              {metrics.maxHumidity.toFixed(0)}%
             </div>
           </div>
 
@@ -388,19 +451,26 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
               <span>Tingkat Kenyamanan</span>
             </div>
             <div className="text-lg font-semibold">
-              <Badge 
+              <Badge
                 variant={
-                  metrics.comfortLevel === 'comfortable' ? 'default' :
-                  metrics.comfortLevel === 'humid' ? 'secondary' :
-                  metrics.comfortLevel === 'dry' ? 'outline' :
-                  'destructive'
+                  metrics.comfortLevel === "comfortable"
+                    ? "default"
+                    : metrics.comfortLevel === "humid"
+                    ? "secondary"
+                    : metrics.comfortLevel === "dry"
+                    ? "outline"
+                    : "destructive"
                 }
               >
-                {metrics.comfortLevel === 'comfortable' ? 'Nyaman' :
-                 metrics.comfortLevel === 'humid' ? 'Lembap' :
-                 metrics.comfortLevel === 'dry' ? 'Kering' :
-                 metrics.comfortLevel === 'hot' ? 'Panas' :
-                 'Dingin'}
+                {metrics.comfortLevel === "comfortable"
+                  ? "Nyaman"
+                  : metrics.comfortLevel === "humid"
+                  ? "Lembap"
+                  : metrics.comfortLevel === "dry"
+                  ? "Kering"
+                  : metrics.comfortLevel === "hot"
+                  ? "Panas"
+                  : "Dingin"}
               </Badge>
             </div>
           </div>
@@ -409,19 +479,19 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
         {/* Chart Selection */}
         <div className="flex gap-2 flex-wrap">
           {[
-            { key: 'temperature', label: 'Suhu', icon: Thermometer },
-            { key: 'humidity', label: 'Kelembapan', icon: Droplets },
-            { key: 'wind', label: 'Angin', icon: Wind },
-            { key: 'comfort', label: 'Kenyamanan', icon: Heart },
-            { key: 'overview', label: 'Overview', icon: Layers },
+            { key: "temperature", label: "Suhu", icon: Thermometer },
+            { key: "humidity", label: "Kelembapan", icon: Droplets },
+            { key: "wind", label: "Angin", icon: Wind },
+            { key: "comfort", label: "Kenyamanan", icon: Heart },
+            { key: "overview", label: "Overview", icon: Layers },
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setSelectedChart(key as any)}
               className={cn(
                 "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                selectedChart === key 
-                  ? "bg-primary text-primary-foreground" 
+                selectedChart === key
+                  ? "bg-primary text-primary-foreground"
                   : "bg-muted hover:bg-muted/80"
               )}
             >
@@ -433,23 +503,23 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
 
         {/* Main Chart */}
         <div className="h-64">
-          {selectedChart === 'temperature' && (
+          {selectedChart === "temperature" && (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="time" 
+                <XAxis
+                  dataKey="time"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                 />
-                <YAxis 
+                <YAxis
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  domain={['dataMin - 2', 'dataMax + 2']}
+                  domain={["dataMin - 2", "dataMax + 2"]}
                 />
-                <Tooltip 
+                <Tooltip
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
@@ -459,16 +529,16 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
                             {`Suhu: ${payload[0].value}°C`}
                           </p>
                         </div>
-                      )
+                      );
                     }
-                    return null
+                    return null;
                   }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="temperature" 
-                  stroke="#2563eb" 
-                  fill="#3b82f6" 
+                <Area
+                  type="monotone"
+                  dataKey="temperature"
+                  stroke="#2563eb"
+                  fill="#3b82f6"
                   fillOpacity={0.2}
                   strokeWidth={2}
                 />
@@ -476,23 +546,23 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
             </ResponsiveContainer>
           )}
 
-          {selectedChart === 'humidity' && (
+          {selectedChart === "humidity" && (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="time" 
+                <XAxis
+                  dataKey="time"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                 />
-                <YAxis 
+                <YAxis
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                   domain={[0, 100]}
                 />
-                <Tooltip 
+                <Tooltip
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
@@ -502,38 +572,34 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
                             {`Kelembapan: ${payload[0].value}%`}
                           </p>
                         </div>
-                      )
+                      );
                     }
-                    return null
+                    return null;
                   }}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="humidity" 
-                  stroke="#059669" 
+                <Line
+                  type="monotone"
+                  dataKey="humidity"
+                  stroke="#059669"
                   strokeWidth={2}
-                  dot={{ fill: '#059669', strokeWidth: 2, r: 4 }}
+                  dot={{ fill: "#059669", strokeWidth: 2, r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           )}
 
-          {selectedChart === 'wind' && (
+          {selectedChart === "wind" && (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="time" 
+                <XAxis
+                  dataKey="time"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                 />
-                <YAxis 
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip 
+                <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
@@ -543,37 +609,33 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
                             {`Kecepatan: ${payload[0].value} km/h`}
                           </p>
                         </div>
-                      )
+                      );
                     }
-                    return null
+                    return null;
                   }}
                 />
-                <Bar 
-                  dataKey="windSpeed" 
-                  fill="#ea580c"
-                  radius={[2, 2, 0, 0]}
-                />
+                <Bar dataKey="windSpeed" fill="#ea580c" radius={[2, 2, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
 
-          {selectedChart === 'comfort' && (
+          {selectedChart === "comfort" && (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="time" 
+                <XAxis
+                  dataKey="time"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                 />
-                <YAxis 
+                <YAxis
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                   domain={[0, 100]}
                 />
-                <Tooltip 
+                <Tooltip
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
@@ -589,25 +651,25 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
                             {`Risiko UV: ${payload[0]?.payload?.uvRisk}/10`}
                           </p>
                         </div>
-                      )
+                      );
                     }
-                    return null
+                    return null;
                   }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="comfortIndex" 
-                  stroke="#10b981" 
-                  fill="#10b981" 
+                <Area
+                  type="monotone"
+                  dataKey="comfortIndex"
+                  stroke="#10b981"
+                  fill="#10b981"
                   fillOpacity={0.2}
                   strokeWidth={2}
                   name="Kenyamanan"
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="heatIndex" 
-                  stroke="#ef4444" 
-                  fill="#ef4444" 
+                <Area
+                  type="monotone"
+                  dataKey="heatIndex"
+                  stroke="#ef4444"
+                  fill="#ef4444"
                   fillOpacity={0.1}
                   strokeWidth={1}
                   name="Heat Index"
@@ -616,24 +678,24 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
             </ResponsiveContainer>
           )}
 
-          {selectedChart === 'overview' && (
+          {selectedChart === "overview" && (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="time" 
+                <XAxis
+                  dataKey="time"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                 />
-                <YAxis 
+                <YAxis
                   yAxisId="temp"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  domain={['dataMin - 5', 'dataMax + 5']}
+                  domain={["dataMin - 5", "dataMax + 5"]}
                 />
-                <YAxis 
+                <YAxis
                   yAxisId="percent"
                   orientation="right"
                   fontSize={12}
@@ -641,49 +703,58 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
                   axisLine={false}
                   domain={[0, 100]}
                 />
-                <Tooltip 
+                <Tooltip
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
                         <div className="bg-background border rounded-lg shadow-md p-3">
                           <p className="font-medium">{`Jam ${label}`}</p>
                           {payload.map((entry, index) => (
-                            <p key={index} className="text-sm" style={{color: entry.color}}>
-                              {`${entry.name}: ${entry.value}${entry.dataKey === 'temperature' ? '°C' : 
-                                entry.dataKey === 'windSpeed' ? ' km/h' : '%'}`}
+                            <p
+                              key={index}
+                              className="text-sm"
+                              style={{ color: entry.color }}
+                            >
+                              {`${entry.name}: ${entry.value}${
+                                entry.dataKey === "temperature"
+                                  ? "°C"
+                                  : entry.dataKey === "windSpeed"
+                                  ? " km/h"
+                                  : "%"
+                              }`}
                             </p>
                           ))}
                         </div>
-                      )
+                      );
                     }
-                    return null
+                    return null;
                   }}
                 />
-                <Line 
+                <Line
                   yAxisId="temp"
-                  type="monotone" 
-                  dataKey="temperature" 
-                  stroke="#3b82f6" 
+                  type="monotone"
+                  dataKey="temperature"
+                  stroke="#3b82f6"
                   strokeWidth={3}
-                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
                   name="Suhu"
                 />
-                <Line 
+                <Line
                   yAxisId="percent"
-                  type="monotone" 
-                  dataKey="humidity" 
-                  stroke="#10b981" 
+                  type="monotone"
+                  dataKey="humidity"
+                  stroke="#10b981"
                   strokeWidth={2}
-                  dot={{ fill: '#10b981', strokeWidth: 2, r: 3 }}
+                  dot={{ fill: "#10b981", strokeWidth: 2, r: 3 }}
                   name="Kelembapan"
                 />
-                <Line 
+                <Line
                   yAxisId="percent"
-                  type="monotone" 
-                  dataKey="comfortIndex" 
-                  stroke="#f59e0b" 
+                  type="monotone"
+                  dataKey="comfortIndex"
+                  stroke="#f59e0b"
                   strokeWidth={2}
-                  dot={{ fill: '#f59e0b', strokeWidth: 2, r: 3 }}
+                  dot={{ fill: "#f59e0b", strokeWidth: 2, r: 3 }}
                   name="Kenyamanan"
                 />
               </LineChart>
@@ -710,11 +781,16 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
                       cy="50%"
                       outerRadius={60}
                       fill="#8884d8"
-                      label={({ direction, percentage }) => `${direction} (${percentage}%)`}
+                      label={({ direction, percentage }) =>
+                        `${direction} (${percentage}%)`
+                      }
                       fontSize={12}
                     >
                       {windDirectionData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -724,25 +800,30 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
             </div>
 
             <div>
-              <h3 className="text-sm font-medium mb-4">
-                Statistik Arah Angin
-              </h3>
+              <h3 className="text-sm font-medium mb-4">Statistik Arah Angin</h3>
               <div className="space-y-2">
                 {windDirectionData
                   .sort((a, b) => b.count - a.count)
                   .slice(0, 4)
                   .map((item, index) => (
-                    <div key={item.direction} className="flex items-center justify-between text-sm">
+                    <div
+                      key={item.direction}
+                      className="flex items-center justify-between text-sm"
+                    >
                       <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{
+                            backgroundColor: COLORS[index % COLORS.length],
+                          }}
                         />
                         <span>{item.direction}</span>
                       </div>
                       <div className="text-right">
                         <span className="font-medium">{item.count}x</span>
-                        <span className="text-muted-foreground ml-2">({item.percentage}%)</span>
+                        <span className="text-muted-foreground ml-2">
+                          ({item.percentage}%)
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -752,7 +833,7 @@ export function WeatherDetails({ data, isLoading, className }: WeatherDetailsPro
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 
-export default WeatherDetails
+export default WeatherDetails;

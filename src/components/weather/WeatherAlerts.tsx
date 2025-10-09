@@ -1,16 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  AlertTriangle,
-  CloudRain,
-  Wind,
-  Zap,
-  Thermometer,
-  Eye,
-  Info,
-  X,
-} from "lucide-react";
+import { CloudRain, Wind, Thermometer, Eye, Info, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

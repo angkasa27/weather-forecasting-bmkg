@@ -15,23 +15,23 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Performance optimizations
-  experimental: {
-    optimizePackageImports: ['lucide-react', 'recharts'],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
-  },
-  // Production optimizations
-  swcMinify: true,
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
+  // // Performance optimizations
+  // experimental: {
+  //   optimizePackageImports: ['lucide-react', 'recharts'],
+  //   turbo: {
+  //     rules: {
+  //       '*.svg': {
+  //         loaders: ['@svgr/webpack'],
+  //         as: '*.js',
+  //       },
+  //     },
+  //   },
+  // },
+  // // Production optimizations
+  // swcMinify: true,
+  // compiler: {
+  //   removeConsole: process.env.NODE_ENV === 'production',
+  // },
 };
 
 export default withBundleAnalyzer(nextConfig);
