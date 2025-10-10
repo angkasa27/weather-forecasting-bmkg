@@ -25,8 +25,8 @@ export function Footer({ className }: FooterProps) {
             <h3 className="text-sm font-semibold">Tentang Aplikasi</h3>
             <div className="space-y-2 text-sm text-muted-foreground">
               <p>
-                MeteoID, Aplikasi prakiraan cuaca Indonesia dengan data resmi dari Badan
-                Meteorologi, Klimatologi, dan Geofisika (BMKG).
+                MeteoID, Aplikasi prakiraan cuaca Indonesia dengan data resmi
+                dari Badan Meteorologi, Klimatologi, dan Geofisika (BMKG).
               </p>
               <p>
                 Menyediakan informasi cuaca terkini untuk seluruh wilayah
@@ -91,6 +91,7 @@ export function Footer({ className }: FooterProps) {
           <div className="flex flex-col sm:flex-row sm:items-center gap-1">
             <span>© {currentYear} MeteoID.</span>
             <div className="flex items-center justify-center sm:justify-start gap-1">
+              <span>Created by</span>
               <span className="font-medium text-foreground">Ferdy Indra</span>
               <span>&</span>
               <a
