@@ -172,7 +172,7 @@ self.addEventListener('push', (event) => {
     }
     
     event.waitUntil(
-      self.registration.showNotification(data.title || 'Prakiraan Cuaca', options)
+      self.registration.showNotification(data.title || 'MeteoID', options)
     )
   }
 })

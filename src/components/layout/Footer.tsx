@@ -25,7 +25,7 @@ export function Footer({ className }: FooterProps) {
             <h3 className="text-sm font-semibold">Tentang Aplikasi</h3>
             <div className="space-y-2 text-sm text-muted-foreground">
               <p>
-                Aplikasi prakiraan cuaca Indonesia dengan data resmi dari Badan
+                MeteoID, Aplikasi prakiraan cuaca Indonesia dengan data resmi dari Badan
                 Meteorologi, Klimatologi, dan Geofisika (BMKG).
               </p>
               <p>
@@ -71,7 +71,7 @@ export function Footer({ className }: FooterProps) {
               </a>
 
               <a
-                href="https://github.com/angkasa27/weather-forecasting-bmkg"
+                href="https://github.com/angkasa27/meteoid"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground hover:underline"
@@ -89,7 +89,7 @@ export function Footer({ className }: FooterProps) {
         {/* Copyright */}
         <div className="flex flex-col gap-2 text-xs text-muted-foreground text-center sm:text-center sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-            <span>© {currentYear} Prakiraan Cuaca Indonesia.</span>
+            <span>© {currentYear} MeteoID.</span>
             <div className="flex items-center justify-center sm:justify-start gap-1">
               <span className="font-medium text-foreground">Ferdy Indra</span>
               <span>&</span>

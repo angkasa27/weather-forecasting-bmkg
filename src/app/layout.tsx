@@ -3,7 +3,8 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
-  title: "Prakiraan Cuaca Indonesia | Data BMKG Terkini",
+  metadataBase: new URL("https://meteoid.vercel.app"),
+  title: "MeteoID | Prakiraan Cuaca Indonesia",
   description:
     "Pantau kondisi cuaca terkini dan prakiraan cuaca akurat untuk seluruh wilayah Indonesia. Data resmi dari Badan Meteorologi, Klimatologi, dan Geofisika (BMKG).",
   keywords: [
@@ -24,10 +25,13 @@ export const metadata: Metadata = {
     title: "Cuaca BMKG",
   },
   openGraph: {
-    title: "Prakiraan Cuaca Indonesia | Data BMKG Terkini",
+    title: "MeteoID | Prakiraan Cuaca Indonesia",
     description:
       "Pantau kondisi cuaca terkini dan prakiraan cuaca akurat untuk seluruh wilayah Indonesia",
     type: "website",
+    url: "https://meteoid.vercel.app",
+    siteName: "MeteoID",
+    locale: "id_ID",
   },
   other: {
     "mobile-web-app-capable": "yes",

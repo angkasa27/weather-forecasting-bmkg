@@ -147,7 +147,7 @@ export const downloadCSV = (
     link.setAttribute(
       "download",
       filename ||
-        `Prakiraan Cuaca STMKG ${new Date().toLocaleDateString("id-ID")}.csv`
+        `Prakiraan Cuaca ${new Date().toLocaleDateString("id-ID")}.csv`
     );
     link.style.visibility = "hidden";
     document.body.appendChild(link);

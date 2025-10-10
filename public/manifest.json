@@ -1,6 +1,6 @@
 {
-  "name": "Prakiraan Cuaca Indonesia",
-  "short_name": "Cuaca BMKG",
+  "name": "MeteoID | Prakiraan Cuaca Indonesia",
+  "short_name": "MeteoID",
   "description": "Aplikasi prakiraan cuaca Indonesia dengan data resmi dari BMKG",
   "start_url": "/",
   "display": "standalone",
@@ -19,7 +19,7 @@
     },
     {
       "src": "/favicon.ico",
-      "sizes": "512x512", 
+      "sizes": "512x512",
       "type": "image/x-icon",
       "purpose": "any maskable"
     }
@@ -42,7 +42,7 @@
       "url": "/?location=select",
       "icons": [
         {
-          "src": "/icon-96.png", 
+          "src": "/icon-96.png",
           "sizes": "96x96"
         }
       ]

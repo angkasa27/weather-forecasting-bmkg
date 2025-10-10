@@ -47,11 +47,11 @@ export function Header({
                 <Cloud className="h-5 w-5 text-white" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-lg font-semibold text-foreground">
-                  Prakiraan Cuaca
+                <h1 className="text-lg font-semibold text-foreground leading-tight">
+                  MeteoID
                 </h1>
-                <p className="text-xs text-muted-foreground">
-                  Data BMKG Terkini
+                <p className="text-xs text-muted-foreground leading-tight">
+                  Prakiraan Cuaca
                 </p>
               </div>
             </div>
