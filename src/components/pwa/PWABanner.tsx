@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Download, X, Smartphone } from "lucide-react";
+import { Download, X, Cloud } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePWA } from "@/hooks/use-pwa";
 
@@ -44,14 +44,14 @@ export function PWAInstallBanner({ className }: PWAInstallBannerProps) {
       <div className="p-4">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
-            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-              <Smartphone className="w-6 h-6 text-primary-foreground" />
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+              <Cloud className="w-6 h-6 text-primary-foreground" />
             </div>
           </div>
 
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm text-foreground">
-              Install Aplikasi Cuaca
+              Install MeteoID
             </h3>
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
               Install aplikasi ini ke perangkat Anda untuk akses cepat dan
